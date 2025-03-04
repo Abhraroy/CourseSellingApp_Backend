@@ -21,10 +21,11 @@ const admin = new Schema({
 const course = new Schema({
     course:String,
     price:Number,
+    courseid:Number
 })
 const purchases = new Schema({
     userId:ObjectId,
-    course_id:ObjectId
+    coursename:String
 })
 const usermodel = mongoose.model("user",user)
 const purchasemodel = mongoose.model("purchases",purchases)

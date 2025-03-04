@@ -4,8 +4,8 @@ const router = express.Router()
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
 require("dotenv").config()
-const {usermodel,purchasemodel} = require("../db")
-const mongoose  = require("mongoose")
+const {usermodel,purchasemodel,coursemodel} = require("../db")
+const mongoose  = require("mongoose") 
 const{auth} = require("../auth")
 
 const PORT = process.env.PORT
@@ -85,8 +85,9 @@ router.post("/login",async(req,res)=>{
     }
 })
 
-router.post("/purchases",auth,async(req,res)=>{
-    const userid = req.userid
+router.get("/purchases",auth,async(req,res)=>{
+    const userid = req.userId
+    console.log(userid);
     let courseList = []
     try{
     const purchases = await purchasemodel.find({
@@ -94,7 +95,7 @@ router.post("/purchases",auth,async(req,res)=>{
     })
     console.log(purchases);
     purchases.forEach((e)=>{
-        courseList.push(e.course_id)
+        courseList.push(e.coursename)
     })
     res.status(200).json({
         courseList:courseList
@@ -108,6 +109,45 @@ router.post("/purchases",auth,async(req,res)=>{
     
 })
 
+
+router.get("/allcourses",auth,async(req,res)=>{
+    try{
+        const courses = await coursemodel.find()
+        res.status(200).json({
+            courses
+        })
+    }catch(e){
+        console.log(e);
+        res.status(408).send({
+            msg:"Error while connecting to DB"
+        })
+    }
+})
+
+router.post("/purchase",auth,async(req,res)=>{
+    const userId = req.userId
+    const {coursename,courseid} = req.body
+    if(!coursename){
+        return res.status(400).send({
+            msg:"A course name is required"
+        })
+    }
+    try{
+        await purchasemodel.create({
+            userId:userId,
+            coursename:coursename,
+            courseid:courseid
+        })
+        res.status(200).send({
+            msg:"Your course has been purchased"
+        })
+    }catch(e){
+        console.log(e);
+        res.status(408).send({
+            msg:"Connection error"
+        })
+    }
+})
 
 
 

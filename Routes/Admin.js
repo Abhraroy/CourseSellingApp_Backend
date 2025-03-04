@@ -65,8 +65,8 @@ router.post("/login",async(req,res)=>{
 })
 
 router.post("/createcourse",adminauth,async(req,res)=>{
-    const {course,price} = req.body
-    if (!course || !price) {
+    const {course,price,courseid} = req.body
+    if (!course || !price ||!courseid) {
         return res.status(400).send({
            msg: "Please fill out all the valid places"
        })
@@ -74,7 +74,8 @@ router.post("/createcourse",adminauth,async(req,res)=>{
    try{
     await coursemodel.create({
         course:course,
-        price:price
+        price:price,
+        courseid:courseid
     })
     res.status(200).send({
         msg:"The course has been added"
@@ -85,5 +86,64 @@ router.post("/createcourse",adminauth,async(req,res)=>{
     })
    }
 })
+
+router.get("/allcourses",adminauth,async(req,res)=>{
+    try{
+        const courses = await coursemodel.find()
+        res.status(200).json({
+            courses
+        })
+    }catch(e){
+        console.log(e);
+        res.status(408).send({
+            msg:"Error while connecting to DB"
+        })
+    }
+})
+
+router.put("/updatecourse",adminauth,async(req,res)=>{
+    const{course,price,courseid} = req.body
+    if(!courseid){
+        return res.status(400).send({
+            msg:"Course Id required"
+        })
+    }
+    try{
+        const foundcourse = await coursemodel.findOne({
+            courseid:courseid
+        })
+        foundcourse.course=course
+        foundcourse.price=price
+        await foundcourse.save()
+        res.status(200).send({
+            msg:"Course has been updated"
+        })
+    }catch(e){
+        console.log(e);
+        res.status(408).send({
+            msg:"Error while connecting to DB"
+        })
+    }
+
+})
+router.delete("/deletecourse",adminauth,async(req,res)=>{
+    const courseid = req.body.courseid
+    try{
+        await coursemodel.deleteOne({
+            courseid:courseid
+        })
+        res.status(200).send({
+            msg:"The course has been deleted"
+        })
+    }catch(e){
+        console.log(e);
+        res.status(408).send({
+            msg:"Error while connecting to DB"
+        })
+    }
+})
+
+
+
 
 module.exports = router
